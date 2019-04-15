@@ -21,6 +21,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'SQLAlchemy',
+        'pyepics',
     ],
     extras_require={
         'develop': [
