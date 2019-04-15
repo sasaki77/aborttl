@@ -79,9 +79,15 @@ class DbHandler(object):
         return r
 
     def fetch_current_pvs(self):
+        t_pvs = self.tables['pvs']
+        t_cpvs = self.tables['current_pvs']
+
         conn = self.engine.connect(close_with_result=True)
 
-        s = sa.select([self.tables['current_pvs']])
+        s = (
+              sa.select([t_cpvs.c.pvname, t_pvs.c.ring, t_cpvs.c.msg]).
+              select_from(t_cpvs.join(t_pvs))
+             )
         result = conn.execute(s)
 
         r = result.fetchall()

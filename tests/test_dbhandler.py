@@ -125,10 +125,13 @@ def test_fetch_all_pvs(dh, mock_data):
 
 
 def test_fetch_current_pvs(dh, mock_data):
-    pvs = dh.fetch_current_pvs()
-    for pv_mock, pv_db in zip(mock_data['current_pvs'], pvs):
-        assert pv_mock['pvname'] == pv_db['pvname']
-        assert pv_mock['msg'] == pv_db['msg']
+    f_pvs = dh.fetch_current_pvs()
+    current_pvs = mock_data['current_pvs']
+    pvs = mock_data['pvs'][1:7]
+    for pv_mock1, pv_mock2, pv_db in zip(current_pvs, pvs, f_pvs):
+        assert pv_mock1['pvname'] == pv_db['pvname']
+        assert pv_mock1['msg'] == pv_db['msg']
+        assert pv_mock2['ring'] == pv_db['ring']
 
 
 def test_fetch_abort_signals(dh, mock_data):
