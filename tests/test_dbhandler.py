@@ -1,5 +1,6 @@
 import pytest
 import sqlalchemy as sa
+
 from aborttl.dbhandler import DbHandler
 
 
@@ -261,3 +262,16 @@ def test_insert_abort(dh):
 
     db_signals = dh.fetch_abort_signals(sstart='2019', include_no_abt_id=True)
     assert len(db_signals) == 2
+
+
+def test_update_abort(dh):
+    abort_time = '2019-01-01 00:00:00.000000000'
+
+    dh.update_abort(abt_id=1, timestamp=abort_time)
+
+    aborts = dh.fetch_aborts()
+    for abort in aborts:
+        if abort['abt_id'] == 1 and abort['abt_time'] == abort_time:
+            break
+    else:
+        assert False, 'Failed to update abort'

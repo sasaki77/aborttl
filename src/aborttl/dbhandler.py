@@ -89,6 +89,17 @@ class DbHandler(object):
 
         return r
 
+    def fetch_aborts(self):
+        conn = self.engine.connect(close_with_result=True)
+
+        s = sa.select([self.tables['aborts']])
+        result = conn.execute(s)
+
+        r = result.fetchall()
+        result.close()
+
+        return r
+
     def fetch_abort_signals(self, ring=None, first=True,
                             include_no_abt_id=False, astart=None, aend=None,
                             sstart=None, send=None):
@@ -194,10 +205,20 @@ class DbHandler(object):
 
         return ids
 
-    def insert_abort(self, abort):
+    def insert_abort(self, timestamp):
         with self.engine.begin() as conn:
             result = conn.execute(self.tables['aborts'].insert(),
-                                  {'abt_time': abort})
+                                  {'abt_time': timestamp})
             abt_id = result.inserted_primary_key
 
         return abt_id[0]
+
+    def update_abort(self, abt_id, timestamp):
+        with self.engine.begin() as conn:
+            table = self.tables['aborts']
+            stmt = (
+                      table.update().
+                      where(table.c.abt_id == abt_id).
+                      values(abt_time=timestamp)
+                    )
+            result = conn.execute(stmt)
