@@ -1,4 +1,6 @@
-# aborttl: Abort Time Logger
+# aborttl: Abort Timestamps Logger
+Abort Timestamps Logger for SuperKEKB
+
 ## Test
 
 Install packages for develop
