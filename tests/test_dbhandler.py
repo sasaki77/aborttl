@@ -119,24 +119,25 @@ def test_table_foreign_key(dh):
 
 def test_fetch_all_pvs(dh, mock_data):
     pvs = dh.fetch_all_pvs()
-    for pv_mock, pv_db in zip(mock_data['pvs'], pvs):
-        assert pv_mock['pvname'] == pv_db['pvname']
-        assert pv_mock['ring'] == pv_db['ring']
+    for pv_db, pv_mock in zip(pvs, mock_data['pvs']):
+        assert pv_db['pvname'] == pv_mock['pvname']
+        assert pv_db['ring'] == pv_mock['ring']
 
 
 def test_fetch_current_pvs(dh, mock_data):
     f_pvs = dh.fetch_current_pvs()
     current_pvs = mock_data['current_pvs']
     pvs = mock_data['pvs'][1:7]
-    for pv_mock1, pv_mock2, pv_db in zip(current_pvs, pvs, f_pvs):
-        assert pv_mock1['pvname'] == pv_db['pvname']
-        assert pv_mock1['msg'] == pv_db['msg']
-        assert pv_mock2['ring'] == pv_db['ring']
+
+    for pv_db, pv_mock1, pv_mock2 in zip(f_pvs, current_pvs, pvs):
+        assert pv_db['pvname'] == pv_mock1['pvname']
+        assert pv_db['msg'] == pv_mock1['msg']
+        assert pv_db['ring'] == pv_mock2['ring']
 
 
 def test_fetch_abort_signals(dh, mock_data):
     signals = dh.fetch_abort_signals()
-    for s1, s2 in zip(mock_data['as_all_result'], signals):
+    for s1, s2 in zip(signals, mock_data['as_all_result']):
         assert s1['abt_id'] == s2['abt_id']
         assert s1['ts'] == s2['ts']
         assert s1['pvname'] == s2['pvname']
@@ -170,9 +171,9 @@ def test_update_current_pvs(dh):
     dh.update_current_pvs(pvs)
 
     db_pvs = dh.fetch_current_pvs()
-    for pv_mock, pv_db in zip(pvs, db_pvs):
-        assert pv_mock['pvname'] == pv_db['pvname']
-        assert pv_mock['msg'] == pv_db['msg']
+    for pv_db, pv_mock in zip(db_pvs, pvs):
+        assert pv_db['pvname'] == pv_mock['pvname']
+        assert pv_db['msg'] == pv_mock['msg']
 
 
 def test_insert_pvs(dh):
