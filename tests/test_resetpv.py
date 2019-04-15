@@ -6,9 +6,14 @@ from epics import caput, caget
 from aborttl.resetpvcounter import ResetPVCounter
 
 
-def test_resetpv(softioc, caclient):
+@pytest.fixture(scope='module')
+def rc():
     pvname = 'ET_dummyHost:RESETw'
-    rc = ResetPVCounter(pvname)
+    return ResetPVCounter(pvname)
+
+
+def test_resetpv(softioc, caclient, rc):
+    pvname = 'ET_dummyHost:RESETw'
 
     for i in range(5):
         caput(pvname, 1, timeout=1)
