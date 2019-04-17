@@ -1,4 +1,5 @@
 import os
+import time
 
 import pytest
 from epics import ca
@@ -20,17 +21,20 @@ def softioc():
     iocprocess.stop()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session', autouse=True)
 def caclient():
     ca.finalize_libca()
+    time.sleep(1)
 
     sport = str(IocControl.server_port)
     os.environ['EPICS_CA_AUTO_ADDR_LIST'] = 'NO'
     os.environ['EPICS_CA_ADDR_LIST'] = 'localhost:{}'.format(sport)
 
     ca.initialize_libca()
+    time.sleep(1)
     yield
     ca.finalize_libca()
+    time.sleep(1)
 
 
 @pytest.fixture

@@ -2,30 +2,35 @@ record(bo, "${head}:RESETw"){
     field(HIGH, "0.1")
 }
 
+record(bo, "${head}:ABORTCH"){}
 record(bo, "${head}:ABORTCH1"){}
 record(bo, "${head}:ABORTCH2"){}
 record(bo, "${head}:ABORTCH3"){}
 record(bo, "${head}:ABORTCH4"){}
 record(bo, "${head}:ABORTCH5"){}
 
+record(longout, "${head}:ABORTCH:ACNT"){}
 record(longout, "${head}:ABORTCH1:ACNT"){}
 record(longout, "${head}:ABORTCH2:ACNT"){}
 record(longout, "${head}:ABORTCH3:ACNT"){}
 record(longout, "${head}:ABORTCH4:ACNT"){}
 record(longout, "${head}:ABORTCH5:ACNT"){}
 
+record(longout, "${head}:ABORTCH:TCNT"){}
 record(longout, "${head}:ABORTCH1:TCNT"){}
 record(longout, "${head}:ABORTCH2:TCNT"){}
 record(longout, "${head}:ABORTCH3:TCNT"){}
 record(longout, "${head}:ABORTCH4:TCNT"){}
 record(longout, "${head}:ABORTCH5:TCNT"){}
 
+record(longout, "${head}:ABORTCH:TIME_SEC"){}
 record(longout, "${head}:ABORTCH1:TIME_SEC"){}
 record(longout, "${head}:ABORTCH2:TIME_SEC"){}
 record(longout, "${head}:ABORTCH3:TIME_SEC"){}
 record(longout, "${head}:ABORTCH4:TIME_SEC"){}
 record(longout, "${head}:ABORTCH5:TIME_SEC"){}
 
+record(longout, "${head}:ABORTCH:TIME_NANO"){}
 record(longout, "${head}:ABORTCH1:TIME_NANO"){}
 record(longout, "${head}:ABORTCH2:TIME_NANO"){}
 record(longout, "${head}:ABORTCH3:TIME_NANO"){}

@@ -24,6 +24,7 @@ class ResetPVCounter(object):
 
         with self._lock:
             self._count += value
+            self.logger.debug('Reset PV count up to {}'.format(self._count))
 
     def _on_connection(self, pvname=None, conn=None, **kw):
         self.logger.debug('{} connection change: {}'.format(pvname, conn))
