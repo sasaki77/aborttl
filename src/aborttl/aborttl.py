@@ -50,12 +50,12 @@ class Aborttl(object):
         self._init_pv()
 
     def _init_pv(self):
-        self._resetpv = ResetPVCounter(self._resetpvname)
+        self._resetpv = ResetPVCounter(self._resetpvname, logger=self._logger)
 
         self._update_pvlist()
 
         for pvname, item in self._pvs.items():
-            item['abortch'] = AbortCh(pvname, self._cb)
+            item['abortch'] = AbortCh(pvname, self._cb, logger=self._logger)
 
     def _cb(self, pvname=None, value=None):
         self._logger.debug('Put {}, {} to queue'.format(pvname, bool(value)))
