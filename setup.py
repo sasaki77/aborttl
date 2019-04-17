@@ -1,10 +1,10 @@
 from setuptools import find_packages, setup
 
 with open('README.md') as f:
-        readme = f.read()
+    readme = f.read()
 
 with open('LICENSE') as f:
-        license = f.read()
+    license = f.read()
 
 setup(
     name='aborttl',
