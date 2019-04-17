@@ -30,4 +30,7 @@ setup(
             'pycodestyle'
             ]
     },
+    entry_points={
+        'console_scripts': ['aborttl=aborttl.main:main'],
+    },
 )
