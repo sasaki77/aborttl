@@ -14,12 +14,14 @@ class AbortInfo(object):
         self.sec = None
         self.ts = None
         self.reset_offset = 0
+        self.iniail_abort = True
 
     def clear(self):
         self.id = None
         self.sec = None
         self.ts = None
         self.reset_offset = 0
+        self.iniail_abort = False
 
 
 class Aborttl(object):
@@ -61,6 +63,20 @@ class Aborttl(object):
         self._logger.debug('Put {}, {} to queue'.format(pvname, bool(value)))
         self._abt_q.put((pvname, bool(value)))
 
+    def _initial_abort_check(self):
+        is_abort = {'LER': 0, 'HER': 0}
+
+        for pv in self._pvs:
+            pvname = pv['pvname']
+            ring = pv['ring']
+            abort = pv['abortch'].abort
+
+            self._aborts[pvname] = abort
+            is_abort[ring] += abort
+
+        self._abtinfo['LER'].iniail_abort = bool(is_abort['LER'])
+        self._abtinfo['HER'].iniail_abort = bool(is_abort['HER'])
+
     def _update_pvlist(self):
         pvs = self._dh.fetch_current_pvs()
         self._pvs = {pv['pvname']: {'ring': pv['ring'], 'msg': pv['msg']}
@@ -96,7 +112,9 @@ class Aborttl(object):
                 continue
 
             # new abort is comming
-            if abtinfo.id is None:
+            if abtinfo.iniail_abort:
+                pass
+            elif abtinfo.id is None:
 
                 # Check the abort time can be treated as identical abort
                 rring = 'HER' if ring == 'LER' else 'LER'
@@ -105,7 +123,6 @@ class Aborttl(object):
                       rabtinfo.id is not None and
                       abs(ch.ts_sec - rabtinfo.sec) < 5
                    ):
-
                     # Both ring abort
                     self._logger.debug('Both ring abort')
 
@@ -123,7 +140,7 @@ class Aborttl(object):
                     abtinfo.reset_offset = self._resetpv.count
 
             # new faster abort is comming
-            if timestamp < abtinfo.ts:
+            elif timestamp < abtinfo.ts:
                 self._logger.debug('New faster abort is comming')
                 self._dh.update_abort(abtinfo.id, timestamp)
                 abtinfo.sec = ch.ts_sec
@@ -168,6 +185,7 @@ class Aborttl(object):
         self.__is_stop.clear()
 
         try:
+            self._initial_abort_check()
             while not self.__stop_request:
                 self._run_loop()
                 time.sleep(self._interval)

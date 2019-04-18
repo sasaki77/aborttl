@@ -14,7 +14,7 @@ def test_migration_from_json_both(tmpdir):
                          "TCNT": 0,
                          "TS": "2019-01-01 00:00:00.000000",
                          "MSG": "MESSAGE A",
-                         "DATE": "2019-01-01 00:00:00.000000000"
+                         "DATE": "2019-01-01 00:00:00.000000000",
                          "ACNT": 1
                      },
                      {

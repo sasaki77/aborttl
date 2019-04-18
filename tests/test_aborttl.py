@@ -102,12 +102,20 @@ def check_signals(ss_db, ss_test):
         assert s_db['int_cnt'] == s_test.acnt, err_msg
 
 
+def set_initial_abort_state():
+    put_abort_ch(3, 0, 0)
+    put_abort_ch(5, 0, 0)
+
+
 @pytest.fixture(scope='module')
 def atl(caclient, tmpdir_factory):
     AbortCh.fields['ACNT'] = ':ACNT'
     AbortCh.fields['TCNT'] = ':TCNT'
-    dburi = 'sqlite:///' + str(tmpdir_factory.mktemp('data').join('testdata.db'))
+    dburi = ('sqlite:///' +
+             str(tmpdir_factory.mktemp('data').join('testdata.db'))
+             )
     insert_current_pv_mock(dburi)
+    set_initial_abort_state()
     atl = Aborttl(dburi, 'ET_dummyHost:RESETw')
 
     thread = CAThread(target=atl.run)
@@ -117,6 +125,34 @@ def atl(caclient, tmpdir_factory):
     yield atl
     atl.stop()
     thread.join()
+    time.sleep(1)
+
+
+def test_initial_abort(softioc, caclient, atl):
+    t1 = put_abort_ch(1, 0, 0)
+    t2 = put_abort_ch(2, 1, 0)
+
+    time.sleep(2)
+    abort_reset()
+    clear_ch(1)
+    time.sleep(6)
+
+    put_abort_ch(1, 0, 1)
+    t4 = put_abort_ch(4, 2, 1)
+    put_abort_ch(1, 1, 1)
+
+    time.sleep(2)
+
+    signals = atl._dh.fetch_abort_signals(include_no_abt_id=True)
+
+    ss = [Signal(None, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0),
+          Signal(None, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 0, 1),
+          Signal(None, t4, 'ET_dummyHost:ABORTCH4', 'msg 4', 'LER', 0, 1, 2)]
+
+    check_signals(signals, ss)
+
+    for i in range(5):
+        clear_ch(i+1)
     time.sleep(1)
 
 
