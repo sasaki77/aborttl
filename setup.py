@@ -31,6 +31,7 @@ setup(
             ]
     },
     entry_points={
-        'console_scripts': ['aborttl=aborttl.main:main'],
+        'console_scripts': ['aborttl=aborttl.main:main',
+                            'abtmigrate=aborttl.migration:main']
     },
 )
