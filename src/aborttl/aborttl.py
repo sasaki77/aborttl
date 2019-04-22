@@ -66,12 +66,11 @@ class Aborttl(object):
     def _initial_abort_check(self):
         is_abort = {'LER': 0, 'HER': 0}
 
-        for pv in self._pvs:
-            pvname = pv['pvname']
+        for pvname, pv in self._pvs.items():
             ring = pv['ring']
             abort = pv['abortch'].abort
 
-            self._aborts[pvname] = abort
+            self._aborts[ring][pvname] = bool(abort)
             is_abort[ring] += abort
 
         self._abtinfo['LER'].iniail_abort = bool(is_abort['LER'])
@@ -113,7 +112,7 @@ class Aborttl(object):
 
             # new abort is comming
             if abtinfo.iniail_abort:
-                pass
+                self._logger.debug('Still initial abort')
             elif abtinfo.id is None:
 
                 # Check the abort time can be treated as identical abort

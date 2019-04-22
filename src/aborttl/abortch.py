@@ -40,7 +40,8 @@ class AbortCh(object):
         self._cb(pvname, value)
 
     def _on_connection(self, pvname=None, conn=None, **kw):
-        self._connection_update = True
+        if not conn:
+            self._connection_update = True
         self.logger.debug('{} connection change: {}'.format(pvname, conn))
 
     def get_timestamp(self):

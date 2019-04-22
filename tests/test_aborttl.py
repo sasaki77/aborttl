@@ -89,8 +89,9 @@ def abort_reset():
     time.sleep(1.1)
 
 
-def check_signals(ss_db, ss_test):
-    for s_db, s_test in zip(ss_db, ss_test):
+def check_signals(ss_test, ss_db):
+    assert len(ss_test) == len(ss_db)
+    for s_test, s_db in zip(ss_test, ss_db):
         err_msg = '{} = {}'.format(s_db, s_test)
         assert s_db['abt_id'] == s_test.abt_id, err_msg
         assert s_db['ts'] == s_test.ts, err_msg
@@ -108,7 +109,7 @@ def set_initial_abort_state():
 
 
 @pytest.fixture(scope='module')
-def atl(caclient, tmpdir_factory):
+def atl(softioc, caclient, tmpdir_factory):
     AbortCh.fields['ACNT'] = ':ACNT'
     AbortCh.fields['TCNT'] = ':TCNT'
     dburi = ('sqlite:///' +
@@ -147,9 +148,9 @@ def test_initial_abort(softioc, caclient, atl):
 
     ss = [Signal(None, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0),
           Signal(None, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 0, 1),
-          Signal(None, t4, 'ET_dummyHost:ABORTCH4', 'msg 4', 'LER', 0, 1, 2)]
+          Signal(None, t4, 'ET_dummyHost:ABORTCH4', 'msg 4', 'LER', 1, 1, 2)]
 
-    check_signals(signals, ss)
+    check_signals(ss, signals)
 
     for i in range(5):
         clear_ch(i+1)
@@ -174,6 +175,7 @@ def test_single_ring_abort(softioc, caclient, atl):
     time.sleep(2)
 
     signals = atl._dh.fetch_abort_signals()
+    print(signals)
 
     ss = [Signal(1, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0),
           Signal(1, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 0, 1),
@@ -181,7 +183,7 @@ def test_single_ring_abort(softioc, caclient, atl):
           Signal(2, t4, 'ET_dummyHost:ABORTCH4', 'msg 4', 'LER', 0, 1, 2),
           Signal(2, t5, 'ET_dummyHost:ABORTCH5', 'msg 5', 'LER', 0, 2, 1)]
 
-    check_signals(signals, ss)
+    check_signals(ss, signals)
 
     for i in range(5):
         clear_ch(i+1)
@@ -211,6 +213,7 @@ def test_both_ring_abort(softioc, caclient, atl):
     time.sleep(2)
 
     signals = atl._dh.fetch_abort_signals(astart=init_dt.isoformat(' '))
+    print(signals)
 
     ss = [Signal(3, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0),
           Signal(3, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 0, 1),
@@ -218,7 +221,7 @@ def test_both_ring_abort(softioc, caclient, atl):
           Signal(3, t4, 'ET_dummyHost:ABORTCH4', 'msg 4', 'LER', 1, 1, 2),
           Signal(3, t5, 'ET_dummyHost:ABORTCH5', 'msg 5', 'LER', 1, 2, 1)]
 
-    check_signals(signals, ss)
+    check_signals(ss, signals)
 
     for i in range(5):
         clear_ch(i+1)
@@ -253,7 +256,7 @@ def test_new_faster_abort(softioc, caclient, atl):
           Signal(4, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 1, 0),
           Signal(4, t3, 'ET_dummyHost:ABORTCH3', 'msg 3', 'HER', 0, 1, 1)]
 
-    check_signals(signals, ss)
+    check_signals(ss, signals)
 
     for i in range(5):
         clear_ch(i+1)
@@ -275,7 +278,30 @@ def test_timestamp_update_later(softioc, caclient, atl):
 
     ss = [Signal(5, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0)]
 
-    check_signals(signals, ss)
+    check_signals(ss, signals)
 
     for i in range(5):
         clear_ch(i+1)
+    time.sleep(3)
+
+
+def test_timestamp_update_later(softioc, caclient, atl):
+    init_time = time.time()
+    init_dt = datetime.fromtimestamp(init_time)
+
+    put_abort_ch(1, 0, 0, 0)
+    time.sleep(1)
+    clear_ch(1)
+    t1 = put_abort_ch(1, 0, 0)
+
+    time.sleep(2)
+
+    signals = atl._dh.fetch_abort_signals(astart=init_dt.isoformat(' '))
+
+    ss = [Signal(5, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0)]
+
+    check_signals(ss, signals)
+
+    for i in range(5):
+        clear_ch(i+1)
+    time.sleep(1)
