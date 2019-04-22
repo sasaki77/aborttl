@@ -175,7 +175,6 @@ def test_single_ring_abort(softioc, caclient, atl):
     time.sleep(2)
 
     signals = atl._dh.fetch_abort_signals()
-    print(signals)
 
     ss = [Signal(1, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0),
           Signal(1, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 0, 1),
@@ -213,7 +212,6 @@ def test_both_ring_abort(softioc, caclient, atl):
     time.sleep(2)
 
     signals = atl._dh.fetch_abort_signals(astart=init_dt.isoformat(' '))
-    print(signals)
 
     ss = [Signal(3, t1, 'ET_dummyHost:ABORTCH1', 'msg 1', 'HER', 0, 0, 0),
           Signal(3, t2, 'ET_dummyHost:ABORTCH2', 'msg 2', 'HER', 0, 0, 1),
