@@ -22,6 +22,7 @@ setup(
     install_requires=[
         'SQLAlchemy',
         'pyepics',
+        'pvapy',
     ],
     extras_require={
         'develop': [
@@ -32,6 +33,7 @@ setup(
     },
     entry_points={
         'console_scripts': ['aborttl=aborttl.main:main',
-                            'abtmigrate=aborttl.migration:main']
+                            'abtmigrate=aborttl.migration:main',
+                            'abtpvaserv=aborttl.pvarpc_server:main']
     },
 )
