@@ -64,8 +64,9 @@ def main():
     args = parse_args()
 
     if args.logconfig:
-        logger = logging.config.fileConfig(args.logconfig,
-                                           disable_existing_loggers=False)
+        logging.config.fileConfig(args.logconfig,
+                                  disable_existing_loggers=False)
+        logger = logging.getLogger(__name__)
     else:
         logger = get_default_logger()
 
