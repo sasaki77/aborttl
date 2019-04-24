@@ -45,6 +45,44 @@ class AbortRPC(object):
 
         return {"time": time, "title": title, "tags": tags, "text": text}
 
+    def get_signals(self, x):
+        try:
+            starttime = x.getString('starttime')
+            endtime = x.getString('endtime')
+        except (pva.FieldNotFound, pva.InvalidRequest):
+            return pva.PvBoolean(False)
+
+        ring = x.getString('ring') if x.hasField('ring') else None
+        msg = x.getString('message') if x.hasField('message') else ''
+
+        timestamp_data = self._dh.fetch_abort_signals(ring=ring,
+                                                      include_no_abt_id=True,
+                                                      sstart=starttime,
+                                                      send=endtime)
+
+        data = {'time': [], 'msg': [], 'pvname': [], 'ring': []}
+        for d in timestamp_data:
+            data['time'].append(d['ts'])
+            data['msg'].append(d['msg'])
+            data['pvname'].append(d['pvname'])
+            data['ring'].append(d['ring'])
+
+        ann = self.data2annotation(timestamp_data)
+
+        vals = {"column0": [pva.STRING],
+                "column1": [pva.STRING],
+                "column2": [pva.STRING],
+                "column3": [pva.STRING]}
+        table = pva.PvObject({"labels": [pva.STRING], "value": vals},
+                             'epics:nt/NTTable:1.0')
+        table.setScalarArray("labels", ["time", "msg", "pvname", "ring"])
+        table.setStructure("value", {"column0": data["time"],
+                                     "column1": data["msg"],
+                                     "column2": data["pvname"],
+                                     "column3": data["ring"]})
+
+        return table
+
     def get_annotations(self, x):
         try:
             starttime = x.getString('starttime')
@@ -112,7 +150,8 @@ def main():
     abort_rpc = AbortRPC(arg.uri)
 
     srv = pva.RpcServer()
-    srv.registerService(arg.ch, abort_rpc.get_annotations)
+    srv.registerService(arg.ch, abort_rpc.get_signals)
+    srv.registerService(arg.ch + ":ann", abort_rpc.get_annotations)
     srv.registerService(arg.ch + ":search", abort_rpc.get_search)
     srv.startListener()
 
