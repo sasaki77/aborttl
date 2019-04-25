@@ -56,6 +56,7 @@ class AbortRPC(object):
         msg = x.getString('message') if x.hasField('message') else ''
 
         timestamp_data = self._dh.fetch_abort_signals(ring=ring,
+                                                      first=False,
                                                       include_no_abt_id=True,
                                                       sstart=starttime,
                                                       send=endtime)
