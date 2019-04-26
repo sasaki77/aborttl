@@ -55,6 +55,10 @@ class AbortRPC(object):
         ring = x.getString('ring') if x.hasField('ring') else None
         msg = x.getString('message') if x.hasField('message') else ''
 
+        # ex) 2019-01-01T00:00:00 => 2019-01-01 00:00:00
+        starttime = starttime.replace("T"," ")
+        endtime = endtime.replace("T"," ")
+
         timestamp_data = self._dh.fetch_abort_signals(ring=ring,
                                                       first=False,
                                                       include_no_abt_id=True,
@@ -99,6 +103,10 @@ class AbortRPC(object):
         else:
             entity = 'BOTH'
             ring = None
+
+        # ex) 2019-01-01T00:00:00 => 2019-01-01 00:00:00
+        starttime = starttime.replace("T"," ")
+        endtime = endtime.replace("T"," ")
 
         timestamp_data = self._dh.fetch_abort_signals(ring=ring,
                                                       astart=starttime,
