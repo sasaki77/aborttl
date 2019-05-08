@@ -65,26 +65,27 @@ class AbortRPC(object):
                                                       sstart=starttime,
                                                       send=endtime)
 
-        data = {'time': [], 'msg': [], 'pvname': [], 'ring': []}
+        data = {'abt_id':[], 'time': [], 'msg': [], 'pvname': [], 'ring': []}
         for d in timestamp_data:
+            data['abt_id'].append(d['abt_id'])
             data['time'].append(d['ts'])
             data['msg'].append(d['msg'])
             data['pvname'].append(d['pvname'])
             data['ring'].append(d['ring'])
 
-        ann = self.data2annotation(timestamp_data)
-
-        vals = {"column0": [pva.STRING],
+        vals = {"column0": [pva.INT],
                 "column1": [pva.STRING],
                 "column2": [pva.STRING],
-                "column3": [pva.STRING]}
+                "column3": [pva.STRING],
+                "column4": [pva.STRING]}
         table = pva.PvObject({"labels": [pva.STRING], "value": vals},
-                             'epics:nt/NTTable:1.0')
-        table.setScalarArray("labels", ["time", "msg", "pvname", "ring"])
-        table.setStructure("value", {"column0": data["time"],
-                                     "column1": data["msg"],
-                                     "column2": data["pvname"],
-                                     "column3": data["ring"]})
+                              'epics:nt/NTTable:1.0')
+        table.setScalarArray("labels", ['abt_id', "time", "msg", "pvname", "ring"])
+        table.setStructure("value", {"column0": data["abt_id"],
+                                     "column1": data["time"],
+                                     "column2": data["msg"],
+                                     "column3": data["pvname"],
+                                     "column4": data["ring"]})
 
         return table
 
