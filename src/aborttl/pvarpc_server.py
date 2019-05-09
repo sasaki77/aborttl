@@ -67,7 +67,8 @@ class AbortRPC(object):
 
         data = {'abt_id':[], 'time': [], 'msg': [], 'pvname': [], 'ring': []}
         for d in timestamp_data:
-            data['abt_id'].append(d['abt_id'])
+            abtid = -1 if d['abt_id'] is None else d['abt_id']
+            data['abt_id'].append(abtid)
             data['time'].append(d['ts'])
             data['msg'].append(d['msg'])
             data['pvname'].append(d['pvname'])
