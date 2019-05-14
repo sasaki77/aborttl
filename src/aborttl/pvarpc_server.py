@@ -46,48 +46,11 @@ class AbortRPC(object):
         return {"time": time, "title": title, "tags": tags, "text": text}
 
     def get_signals(self, x):
-        try:
-            starttime = x.getString('starttime')
-            endtime = x.getString('endtime')
-        except (pva.FieldNotFound, pva.InvalidRequest):
-            return pva.PvBoolean(False)
+        table = self._handling_signals_request(x)
+        return table
 
-        ring = x.getString('ring') if x.hasField('ring') else None
-        msg = x.getString('message') if x.hasField('message') else ''
-
-        # ex) 2019-01-01T00:00:00 => 2019-01-01 00:00:00
-        starttime = starttime.replace("T"," ")
-        endtime = endtime.replace("T"," ")
-
-        timestamp_data = self._dh.fetch_abort_signals(ring=ring,
-                                                      first=False,
-                                                      include_no_abt_id=True,
-                                                      sstart=starttime,
-                                                      send=endtime)
-
-        data = {'abt_id':[], 'time': [], 'msg': [], 'pvname': [], 'ring': []}
-        for d in timestamp_data:
-            abtid = -1 if d['abt_id'] is None else d['abt_id']
-            data['abt_id'].append(abtid)
-            data['time'].append(d['ts'])
-            data['msg'].append(d['msg'])
-            data['pvname'].append(d['pvname'])
-            data['ring'].append(d['ring'])
-
-        vals = {"column0": [pva.INT],
-                "column1": [pva.STRING],
-                "column2": [pva.STRING],
-                "column3": [pva.STRING],
-                "column4": [pva.STRING]}
-        table = pva.PvObject({"labels": [pva.STRING], "value": vals},
-                              'epics:nt/NTTable:1.0')
-        table.setScalarArray("labels", ['abt_id', "time", "msg", "pvname", "ring"])
-        table.setStructure("value", {"column0": data["abt_id"],
-                                     "column1": data["time"],
-                                     "column2": data["msg"],
-                                     "column3": data["pvname"],
-                                     "column4": data["ring"]})
-
+    def get_grouped_signals(self, x):
+        table = self._handling_signals_request(x, 'grouped')
         return table
 
     def get_annotations(self, x):
@@ -143,6 +106,60 @@ class AbortRPC(object):
 
         return pv
 
+    def _handling_signals_request(self, x, mode='signals'):
+        try:
+            starttime = x.getString('starttime')
+            endtime = x.getString('endtime')
+        except (pva.FieldNotFound, pva.InvalidRequest):
+            return pva.PvBoolean(False)
+
+        ring = x.getString('ring') if x.hasField('ring') else None
+        msg = x.getString('message') if x.hasField('message') else ''
+
+        # ex) 2019-01-01T00:00:00 => 2019-01-01 00:00:00
+        starttime = starttime.replace("T"," ")
+        endtime = endtime.replace("T"," ")
+
+        if mode == 'grouped':
+            timestamp_data = self._dh.fetch_abort_signals(
+                    ring=ring,
+                    first=False,
+                    include_no_abt_id=True,
+                    astart=starttime,
+                    aend=endtime)
+        else:
+            timestamp_data = self._dh.fetch_abort_signals(
+                    ring=ring,
+                    first=False,
+                    include_no_abt_id=True,
+                    sstart=starttime,
+                    send=endtime)
+
+        data = {'abt_id':[], 'time': [], 'msg': [], 'pvname': [], 'ring': []}
+        for d in timestamp_data:
+            abtid = -1 if d['abt_id'] is None else d['abt_id']
+            data['abt_id'].append(abtid)
+            data['time'].append(d['ts'])
+            data['msg'].append(d['msg'])
+            data['pvname'].append(d['pvname'])
+            data['ring'].append(d['ring'])
+
+        vals = {"column0": [pva.INT],
+                "column1": [pva.STRING],
+                "column2": [pva.STRING],
+                "column3": [pva.STRING],
+                "column4": [pva.STRING]}
+        table = pva.PvObject({"labels": [pva.STRING], "value": vals},
+                              'epics:nt/NTTable:1.0')
+        table.setScalarArray("labels", ['abt_id', "time", "msg", "pvname", "ring"])
+        table.setStructure("value", {"column0": data["abt_id"],
+                                     "column1": data["time"],
+                                     "column2": data["msg"],
+                                     "column3": data["pvname"],
+                                     "column4": data["ring"]})
+
+        return table
+
 
 def parsearg():
     desc = "Abort timestamp API pvAccess RPC."
@@ -162,6 +179,7 @@ def main():
 
     srv = pva.RpcServer()
     srv.registerService(arg.ch, abort_rpc.get_signals)
+    srv.registerService(arg.ch + ":grouped", abort_rpc.get_grouped_signals)
     srv.registerService(arg.ch + ":ann", abort_rpc.get_annotations)
     srv.registerService(arg.ch + ":search", abort_rpc.get_search)
     srv.startListener()
