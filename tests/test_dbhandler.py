@@ -168,6 +168,13 @@ def test_fetch_abort_signals(dh, mock_data):
     deltas = [signal.delta for signal in signals]
     assert deltas == [0.0, 0.1, 30.2]
 
+    signals = dh.fetch_abort_signals(astart='2018-01-01',
+                                     aend='2018-01-01 00:05:00',
+                                     first=False,
+                                     with_time_delta=True)
+    deltas = [signal.delta for signal in signals]
+    assert deltas == [0.0, 0.1, 30.2, 60.3]
+
 
 def test_update_current_pvs(dh):
     pvs = [

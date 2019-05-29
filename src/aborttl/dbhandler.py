@@ -139,12 +139,18 @@ class DbHandler(object):
                   .group_by(t_al.c.abt_id)
                   .alias()
                   )
+
+            if first:
+                abt_ts_column = sa.func.min(t_as.c.abt_ts)
+            else:
+                abt_ts_column = t_as.c.abt_ts
+
             c = ((
-                    sa.func.strftime('%s', sa.func.min(t_as.c.abt_ts)) -
+                    sa.func.strftime('%s', abt_ts_column) -
                     sa.func.strftime('%s', sq.c.ts)
                   ) +
                  (
-                    sa.func.substr(sa.func.min(t_as.c.abt_ts), -9, 9) -
+                    sa.func.substr(abt_ts_column, -9, 9) -
                     sa.func.substr(sq.c.ts, -9, 9)
                   )*1e-9
                  )
