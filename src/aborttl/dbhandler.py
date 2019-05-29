@@ -106,49 +106,72 @@ class DbHandler(object):
 
         return r
 
-    def fetch_abort_signals(self, ring=None, first=True,
+    def fetch_abort_signals(self, ring=None, msg=None, first=True,
                             include_no_abt_id=False, astart=None, aend=None,
-                            sstart=None, send=None):
+                            with_time_delta=False, sstart=None, send=None):
         conn = self.engine.connect(close_with_result=True)
         t_abts = self.tables['aborts']
         t_as = self.tables['abort_signals']
         t_al = self.tables['abort_list']
         t_pvs = self.tables['pvs']
 
+        select_columns = [
+                            t_abts.c.abt_id,
+                            t_as.c.pvname,
+                            t_as.c.msg,
+                            t_pvs.c.ring,
+                            t_as.c.reset_cnt,
+                            t_as.c.trg_cnt,
+                            t_as.c.int_cnt
+                           ]
+
         if first:
-            s = sa.select([
-                           t_abts.c.abt_id,
-                           sa.func.min(t_as.c.abt_ts).label('ts'),
-                           t_as.c.pvname,
-                           t_as.c.msg,
-                           t_pvs.c.ring,
-                           t_as.c.reset_cnt,
-                           t_as.c.trg_cnt,
-                           t_as.c.int_cnt
-                          ]).group_by(
+            select_columns.insert(1, sa.func.min(t_as.c.abt_ts).label('ts'))
+        else:
+            select_columns.insert(1, t_as.c.abt_ts.label('ts'))
+
+        if with_time_delta:
+            sq = (sa.select([
+                              t_al.c.abt_id,
+                              sa.func.min(t_as.c.abt_ts).label('ts')
+                              ])
+                  .select_from(t_as.join(t_al))
+                  .group_by(t_al.c.abt_id)
+                  .alias()
+                  )
+            c = ((
+                    sa.func.strftime('%s', sa.func.min(t_as.c.abt_ts)) -
+                    sa.func.strftime('%s', sq.c.ts)
+                  ) +
+                 (
+                    sa.func.substr(sa.func.min(t_as.c.abt_ts), -9, 9) -
+                    sa.func.substr(sq.c.ts, -9, 9)
+                  )*1e-9
+                 )
+            select_columns.append(c.label('delta'))
+
+        s = sa.select(select_columns)
+
+        if first:
+            s = s.group_by(
                            t_abts.c.abt_id,
                            t_as.c.pvname
                           )
-        else:
-            s = sa.select([
-                           t_abts.c.abt_id,
-                           t_as.c.abt_ts.label('ts'),
-                           t_as.c.pvname,
-                           t_as.c.msg,
-                           t_pvs.c.ring,
-                           t_as.c.reset_cnt,
-                           t_as.c.trg_cnt,
-                           t_as.c.int_cnt
-                           ])
 
         if include_no_abt_id:
-            s = s.select_from(t_as.outerjoin(t_al).
-                              outerjoin(t_abts).join(t_pvs))
+            tables = t_as.outerjoin(t_al).outerjoin(t_abts).join(t_pvs)
         else:
-            s = s.select_from(t_as.join(t_al).join(t_abts).join(t_pvs))
+            tables = t_as.join(t_al).join(t_abts).join(t_pvs)
+
+        if with_time_delta:
+            s = s.select_from(tables.join(sq, t_abts.c.abt_id == sq.c.abt_id))
+        else:
+            s = s.select_from(tables)
 
         if ring:
             s = s.where(t_pvs.c.ring == ring)
+        if msg:
+            s = s.where(t_as.c.msg.like('%{}%'.format(msg)))
         if astart:
             s = s.where(t_abts.c.abt_time > astart)
         if aend:
