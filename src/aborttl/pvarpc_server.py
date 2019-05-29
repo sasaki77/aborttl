@@ -123,19 +123,24 @@ class AbortRPC(object):
         if mode == 'grouped':
             timestamp_data = self._dh.fetch_abort_signals(
                     ring=ring,
+                    msg=msg,
                     first=False,
                     include_no_abt_id=True,
+                    with_time_delta=True,
                     astart=starttime,
                     aend=endtime)
         else:
             timestamp_data = self._dh.fetch_abort_signals(
                     ring=ring,
+                    msg=msg,
                     first=False,
                     include_no_abt_id=True,
+                    with_time_delta=True,
                     sstart=starttime,
                     send=endtime)
 
-        data = {'abt_id':[], 'time': [], 'msg': [], 'pvname': [], 'ring': []}
+        data = {'abt_id':[], 'time': [], 'msg': [],
+                'pvname': [], 'ring': [], 'delta': []}
         for d in timestamp_data:
             abtid = -1 if d['abt_id'] is None else d['abt_id']
             data['abt_id'].append(abtid)
@@ -143,20 +148,23 @@ class AbortRPC(object):
             data['msg'].append(d['msg'])
             data['pvname'].append(d['pvname'])
             data['ring'].append(d['ring'])
+            data['delta'].append(d['delta'])
 
         vals = {"column0": [pva.INT],
                 "column1": [pva.STRING],
                 "column2": [pva.STRING],
                 "column3": [pva.STRING],
-                "column4": [pva.STRING]}
+                "column4": [pva.STRING],
+                "column5": [pva.FLOAT]}
         table = pva.PvObject({"labels": [pva.STRING], "value": vals},
                               'epics:nt/NTTable:1.0')
-        table.setScalarArray("labels", ['abt_id', "time", "msg", "pvname", "ring"])
+        table.setScalarArray("labels", ['abt_id', "time", "msg", "pvname", "ring", "delta"])
         table.setStructure("value", {"column0": data["abt_id"],
                                      "column1": data["time"],
                                      "column2": data["msg"],
                                      "column3": data["pvname"],
-                                     "column4": data["ring"]})
+                                     "column4": data["ring"],
+                                     "column5": data["delta"]})
 
         return table
 
