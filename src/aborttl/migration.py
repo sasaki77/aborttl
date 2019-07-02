@@ -78,7 +78,8 @@ class Migration(object):
             abort_pvs.append({'pvname': abort['NAME'], 'ring': ring})
 
             msg = abort['MSG'] if 'MSG' in abort else ''
-            sig = {'pvname': abort['NAME'], 'msg': msg, 'pv_ts': abort['TS'],
+            ts = abort['TS'] if 'TS' in abort else abort['DATE'][:-3]
+            sig = {'pvname': abort['NAME'], 'msg': msg, 'pv_ts': ts,
                    'abt_ts': abort['DATE'], 'reset_cnt': abort['RESET'],
                    'trg_cnt': abort['TCNT'], 'int_cnt': abort['ACNT']}
             abort_sig.append(sig)
