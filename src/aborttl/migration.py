@@ -20,6 +20,9 @@ class Migration(object):
         herpaths = list(rootpath.glob(self.hpath + '/**/*.json'))
         lerpaths = list(rootpath.glob(self.lpath + '/**/*.json'))
 
+        herpaths.sort()
+        lerpaths.sort()
+
         herlen = len(herpaths)
         lerlen = len(lerpaths)
         ih = 0
@@ -46,6 +49,7 @@ class Migration(object):
                 il += 1
 
     def onering_register(self, path, ring):
+        print('One ring: {}'.format(path))
         with path.open() as f:
             aborts = json.load(f)
 
@@ -54,6 +58,7 @@ class Migration(object):
         self.register_abt_signals(abt_id, ring, aborts)
 
     def bothring_register(self, herpath, lerpath):
+        print('Both ring: {}, {}'.format(herpath, lerpath))
         with herpath.open() as f:
             heraborts = json.load(f)
 
